@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>rapid-api-combine</title>
+  <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
+  <style>
+    .root {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .results {
+      table-layout: fixed;
+    }
+  </style>
+</head>
+<body>
+<div class="root">
+  <h1>Sentimenter</h1>
+  <input id="search" type="text" placeholder="Search Sentimenter" />
+  <table class="results">
+    <tr>
+      <td>Positive:</td>
+      <td id="pos_percent"></td>
+    </tr>
+
+    <tr>
+      <td>Neutral:</td>
+      <td id="mid_percent"></td>
+    </tr>
+    <tr>
+      <td>Negative:</td>
+      <td id="neg_percent"></td>
+    </tr>
+  </table>
+  <div id="error"></div>
+</div>
+<script>
+  const searchElement = document.getElementById("search");
+  const posPercentElement = document.getElementById("pos_percent");
+  const midPercentElement = document.getElementById("mid_percent");
+  const negPercentElement = document.getElementById("neg_percent");
+  const errorElement = document.getElementById("error");
+
+
+  const resetAndDisplayError = (message) => {
+    posPercentElement.innerText = "N/A";
+    midPercentElement.innerText = "N/A";
+    negPercentElement.innerText = "N/A";
+    errorElement.innerText = message;
+  };
+
+  const handleSearch = async (e) => {
+    if (e.code !== "Enter") {
+      return;
+    }
+
+    const value = encodeURI(e.target.value);
+    const results = await fetch(`/sentimenter?q=${value}`);
+
+    try {
+      const {
+        pos_percent,
+        mid_percent,
+        neg_percent,
+        message,
+      } = await results.json();
+
+      if (results.status !== 200) {
+        resetAndDisplayError(message);
+        return;
+      }
+
+      posPercentElement.innerText = pos_percent;
+      midPercentElement.innerText = mid_percent;
+      negPercentElement.innerText = neg_percent;
+      errorElement.innerText = "";
+    } catch (e) {
+      resetAndDisplayError(e);
+    }
+  };
+
+  searchElement.addEventListener("keypress", handleSearch);
+</script>
+</body>
+</html>
